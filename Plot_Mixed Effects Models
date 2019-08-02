@@ -1,0 +1,145 @@
+setwd("C:/Users/Pasha/Dropbox/Ph.D Research/road data/TRB all material/Modeling Resutls/NegResults/PlotsZeroInflated/Mixed model")
+
+
+#-0-- only for mixed effects
+aa <- predict(Pasha_M1_Final_4_Nahai_1011combine_Jan_F,re.form=NA,newdata=mydata)   # for unscaled data
+bb <- exp(aa)
+mydata2<- cbind(mydata,'m3$fitted.values'=bb)
+
+
+#---Overdispersion function
+
+overdisp_fun <- function(model) {
+  rdf <- df.residual(model)
+  rp <- residuals(model,type="pearson")
+  Pearson.chisq <- sum(rp^2)
+  prat <- Pearson.chisq/rdf
+  pval <- pchisq(Pearson.chisq, df=rdf, lower.tail=FALSE)
+  c(chisq=Pearson.chisq,ratio=prat,rdf=rdf,p=pval)
+}
+overdisp_fun(Pasha_M1_Final_4_Nahai_1011combine_Jan_F)
+
+
+dispersion_glmer=function (modelglmer)
+{
+  n <- length(resid(modelglmer))
+  return(sqrt(sum(c(resid(modelglmer), modelglmer@u)^2)/n))
+}
+dispersion_glmer(Pasha_M1_Final_4_Nahai_1011combine_Jan_F)
+
+m3<- data.frame("alaki"= 2 ,"theta"=0.94)
+#-0--
+
+Qfrom=0
+Qto=4
+Qby=0.2
+sementing = data.frame(BEG=seq(from=Qfrom,to = Qto-Qby,by = Qby),END=seq(from=Qfrom+Qby,to = Qto,by = Qby), MU2=seq(from=mean(c(Qfrom+Qby,Qfrom)),to = mean(c(Qto-Qby,Qto)),by = Qby))
+#sementing = data.frame(BEG=seq(from=0,to = 4.5,by = 0.5),END=seq(from=0.5,to = 5,by = 0.5), MU=seq(from=0.25,to = 4.75,by = 0.5))
+
+zzz=10
+CCount=10
+limitpoints= 1
+a= data.frame(Data=rep(0,zzz),NB =rep(0,zzz),SD=rep(0,zzz),LOWER=rep(0,zzz),UPPER=rep(0,zzz),Observation=rep(0,zzz),AvePredicted=rep(0,zzz))
+
+sementing <- sementing [1:zzz,]
+
+nyxlong_NEW_ALL <- data.frame(one=rep(0,20),Two =rep(0,20),three =rep(0,20),four =rep(0,20),five =rep(0,20),six =rep(0,20),seven =rep(0,20),eight =rep(0,20),nine =rep(0,20),ten =rep(0,20))
+for (i in 1:zzz){
+  new  <- mydata2[which(mydata2$`m3$fitted.values`>sementing[i,1] &
+                          mydata2$`m3$fitted.values`<sementing[i,2]),]
+  if (nrow(new)==0) {
+    next
+  }
+  CrashFreq <- rep(0,CCount)
+  
+  for (j in 1:nrow(new)){
+    for (k in 1:CCount){
+      if (new$SegmentCrashFreq[j] == (k-1)) {
+        CrashFreq[k]= CrashFreq[k]+1
+        break
+      }
+    }
+  }
+  CrashFreq = CrashFreq/sum(CrashFreq)
+  
+  prob <- rep(0,CCount)
+  for (j in 1:CCount){
+    prob[j]=dnbinom((j-1),size =m3$theta ,mu = sementing[i,3])
+  }
+  
+  nyx <- data.frame(Number=c(0:(CCount-1)), CrashFreq, prob)
+  a [i,7] <- mean(new$`m3$fitted.values`)
+  a [i,1] <- sum(nyx$Number*nyx$CrashFreq)
+  a [i,2]<-  sum(nyx$Number*nyx$prob)
+  a [i,3]<-   sd(new$`m3$fitted.values`)
+  a [i,4]<-   a [i,7] -a [i,3]
+  a [i,5]<-   a [i,7] +a [i,3]
+  a [i,6]<-   nrow(new)
+  
+  library(reshape2)
+  library(ggplot2)
+  
+  # reshape your data into long format
+  nyxlong <- melt(nyx, id=c("Number"))
+  
+  nyxlong_NEW_ALL[,i] <- nyxlong$value*nrow(new)
+  nyxlong_NEW_ALL2 <-nyxlong_NEW_ALL
+  # make the plot
+  
+  ggplot(nyxlong) +
+    geom_bar(aes(x = Number, y = value, fill = variable), stat="identity", position = "dodge", width = 0.7) +
+    scale_fill_manual("Result\n", values = c("black","grey"),labels = c("Data", " NB Distribution")) +
+    labs(title=paste("Range of Average Predicted Crashes: [",sementing[i,1],"-", sementing[i,2],"]"),x="\nNumber of Crashes",y="Probability\n",size=2) +
+    theme_bw(base_size = CCount) +  ylim (0,1)+scale_x_continuous(breaks=c(0,1,2,3,4,5,6,7,8,9))+theme(plot.title = element_text(hjust = 0.5))+
+    annotate("label", x = 7, y = .98, label = paste("Number of Segments=",nrow(new)), parse = FALSE)+
+    annotate("label", x = 7, y = .88, label = paste("Number of Crashes=",sum(new$SegmentCrashFreq)), parse = FALSE)
+  
+  ggsave(paste(sementing[i,3],".jpeg"), width = 6.5, height = 3.45)
+  
+}
+#--ploting the accumulation of all ( after revison )
+nyxlong_NEW_ALL2 <-nyxlong_NEW_ALL
+nyxlong_NEW_ALL2[,"sum"]= round( rowSums(nyxlong_NEW_ALL))
+nyxlong_NEW_ALL2[,"Number"] <-nyxlong[,"Number"]
+nyxlong_NEW_ALL2 <- nyxlong_NEW_ALL2[,11:12]
+nyxlong_NEW_ALL2[,"NB"] <- nyxlong_NEW_ALL2[11:20,"sum"]
+nyxlong_NEW_ALL2 <- nyxlong_NEW_ALL2[-c(11:20),]
+nyxlong_NEW_ALL2[,"NB"] <-nyxlong_NEW_ALL2[,"NB"]/colSums(nyxlong_NEW_ALL2)[3]
+nyxlong_NEW_ALL2[,"sum"] <-nyxlong_NEW_ALL2[,"sum"]/colSums(nyxlong_NEW_ALL2)[1]
+
+nyxlong_NEW_ALL2 <- melt(nyxlong_NEW_ALL2, id=c("Number"))
+
+ggplot(nyxlong_NEW_ALL2) +
+  geom_bar(aes(x = Number, y = value, fill = variable), stat="identity", position = "dodge", width = 0.7) +
+  scale_fill_manual("Result\n", values = c("Black","Grey"),labels = c("Data", " NB Distribution")) +
+  theme_bw(base_size = CCount) +scale_y_continuous(breaks = seq(0,1,0.05))+scale_x_continuous(breaks=c(0,1,2,3,4,5,6,7,8,9))+  labs(title=paste("Range of Ave Predicted Crashes: [",sementing[i,1],"-", sementing[i,2],"]","-Number of Observations=",nrow(new)),x="\nNumber of Crashes",y="Probability\n",size=2) +
+  labs(title=NULL,x="\nNumber of Crashes",y="Probability\n",size=2)+ylim(0,1)
+
+ggsave(paste("allSeg.jpeg"), width = 6.5, height = 3.45)
+
+#--- 
+preds <-  a$AvePredicted
+actual <- a$Data
+
+rss <- sum((preds - actual) ^ 2)  ## residual sum of squares
+tss <- sum((actual - mean(actual)) ^ 2)  ## total sum of squares
+rsq <- 1 - rss/tss
+
+
+eq <- substitute(italic(R)^2)
+eqstr <- as.character(as.expression(eq))
+
+ggplot() +
+  geom_point(data= subset(a,Observation>limitpoints), mapping=aes(x=Data, y=AvePredicted), size=2,alpha= 1)+
+  xlab( "Mean of Observed Crashes")+ylab( "Mean of Predicted Crashes")+
+  xlim(0,2.4)+ ylim (0,2.4)+ geom_abline(intercept = 0, slope =1, col='BLACK')+
+  geom_text(data= subset(a,Observation>limitpoints),aes(x=Data, y=AvePredicted,label=paste(Observation)),hjust=1.2, vjust=0)+
+  theme(panel.background = element_rect("white", "white", 0.5,linetype="solid", "black"),  panel.grid.major = element_line(size = 0.15, linetype = 'dotted',
+                                                                                                                           colour = "black"),
+        panel.grid.minor = element_line(size = 0.25, linetype = 'dashed',
+                                        colour = "white"))+annotate("label",x = 2.2, y = 0.25, label = paste(eqstr,"==",round(rsq,2)), parse = TRUE,col="black", cex=5)
+
+
+ggsave(paste("Observed-predicted.jpeg"), width = 5, height = 4.5)
+
+
