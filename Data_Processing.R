@@ -1,5 +1,5 @@
 
-#  The purpose of this scirp is to prepare the data for statistical anlaysis studying
+#  The purpose of this script is to prepare the data for the statistical anlaysis
 
 rm(list = ls())
 WWrite <- TRUE   # to enable write.csv
@@ -57,7 +57,7 @@ D_All_C_CL <- D_All_B # 154533People
 NoRow= (nrow(D_All_A_CL))
 IntersectionFree=rep(0,NoRow)
 for (i in 1:NoRow) {
-  # Since some of the obs are NA , it can not compare for next step , so I add a meaningful value)
+
   if ((is.na(D_All_A_CL$LOC.HARMFUL.EVENT.31A.))[i] ){D_All_A_CL$LOC.HARMFUL.EVENT.31A.[i]=48 }
   if ((is.na(D_All_A_CL$INTERSECT.116.))[i] ){D_All_A_CL$INTERSECT.116.[i]=1 }  #since we dont know , so we dont delet the casenumber.
   
@@ -72,14 +72,14 @@ D_All_A_CL <- cbind(IntersectionFree, D_All_A_CL)
 
 FState=c('HAW','HON') # ,'KAU' ,'MAU'
 FYear=c(2005:2014)
-FRoute=c(11,19,72,83,93,99,750,930)  #50,56,30 other Islands
+FRoute=c(11,19,72,83,93,99,750,930)  #50,56,30 other islands
 # Filter for action
-Frunoff =c (2,3,6,21,22,23,24,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,71,74,102)# run off road
+Frunoff =c (2,3,6,21,22,23,24,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,71,74,102)# run off the road
 Fheadon =c (11,80,83,85)# head on road
 FRwD=c(Frunoff,Fheadon)
 FIntersectionFree = 1
 FMV.TOT.9. =levels(factor( D_All_A_CL$MV.TOT.9.[! D_All_A_CL$MV.TOT.9. %in% 0 ] ))
-#FMV.TOT.9. =levels(factor( D_All_A_CL$MV.TOT.9.[D_All_A_CL$MV.TOT.9. != 0 ] )) #ANOTHER WAY FOR PREVIOUS LINE
+#FMV.TOT.9. =levels(factor( D_All_A_CL$MV.TOT.9.[D_All_A_CL$MV.TOT.9. != 0 ] )) #Another way to do the same thing as the PREVIOUS LINE does
 
 #levels(factor(D_All_A_CL$MV.TOT.9.))
 
@@ -91,38 +91,35 @@ F_D_All_A_CL <-filter (D_All_A_CL,
                        ,IntersectionFree %in% FIntersectionFree
                        ,MV.TOT.9. %in% FMV.TOT.9.
 )
-F_D_All_A_CL[1] <- NULL # to remove intersection free generated colomn
+F_D_All_A_CL[1] <- NULL # to remove extra colomns (intersection free crashes)
 #write.csv( F_D_All_A_CL, file="C:/Users/pasha/Dropbox/Ph.D Research/MyCode1Arpril/Check_Data_Arpril17/Output/F_D_All_A_CL.csv")
 #---------------------------------------------------------
 #part 2
-# How to filter with part of the road with two lanes
-
-# Road required mileage for two-way undivided (physically)
+# How to filter the road (selcting only two lanes two way roads)
 #72
-R72L=c (2.08,13.23) # + directrion  (2.33 , 13.53) for negative
+R72L=c (2.08,13.23) # + direction  (2.33 , 13.53) for negative
 
 #83
 R83L=c (0,39.5) # Only one lane + c (0,39.59)
 
 #93
-R93L=c (12.71,19.524) # + dir and negative are the same
+R93L=c (12.71,19.524) # positive direction and negative direction are the same
 
 #99
-R99L=c (0,6.52)  # zaheran gis farghdare, vali gis va road data asantar ast (0,8.11)
+R99L=c (0,6.52)  
 
-#R99L2=c (13.36,15.7) Zaheran 0-6.52 for gis map
+#R99L2=c (13.36,15.7) 
 
 #750
-R750L=c (0.84 ,7.21 ) #(0.94,7.21) probability are the same
+R750L=c (0.84 ,7.21 )
 
 #930
-R930L=c (11.3,17.3) # same for both direction , Zaheran 0-5.94 for gis map 7.931
-# hasssas , the milepost for this rouote is completerly different (0,5.93)
+R930L=c (11.3,17.3) 
 
 
 
 #11  bigIsland  415
-# R11L=c (8.39,115.8)  # in + direction is 7.91,121.45 but i used negatrive direciton
+# R11L=c (8.39,115.8)  
 # until 109 is state road
 R11L=c (8.39,109)
 
@@ -130,7 +127,7 @@ R11L=c (8.39,109)
 # R19L  <- c(8.79,56.06)  #0 TO 52 IS STATE
 R19L  <- c(8.79,52)
 
-# R19L2 <- c( 56.87, 86.51)   # the lowe limit is in - direction and higher is in + directoin
+# R19L2 <- c( 56.87, 86.51) 
 #58  TA 86.51 IS STATE
 R19L2 <- c( 58, 86.51)
 
