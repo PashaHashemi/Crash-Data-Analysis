@@ -1,3 +1,4 @@
+# This script is desinged to automatically assing the crashes to the different roadway segments
 rm(list = ls())
 
 dd =read.csv("C:/Users/pasha/Dropbox/Ph.D Research/MyCode1Arpril/Check_Data_Arpril17/Output/F_D_All_A_CL_P.csv")
@@ -7,8 +8,8 @@ roadsectiondata =read.csv("C:/Users/pasha/Dropbox/Ph.D Research/MyCode1Arpril/ro
 setwd("C:/Users/pasha/Dropbox/Ph.D Research/MyCode1Arpril/Check_Data_Arpril17/Output/Charts/ALLNEW")
 check = FALSE
 
-# In this program , you need to identify your segment length
-# This program will generate the histogram plots as well.
+# In this script , you need to identify a vector including the desired segment lengths
+# This program will generate histograms as well.
 
 SegLenght2 <- c(0.1,0.2,0.3,0.5,1,2)  # a vector of different segement lengths
 
