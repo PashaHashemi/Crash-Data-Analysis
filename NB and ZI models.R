@@ -1,5 +1,6 @@
 #-------------------------------------------------------------0.1
-# the purpose of this script is to develope negative binomial regression model and zero-inflated model
+# The purpose of this script is to develope negative binomial regression models and zero-inflated models to predict
+# the total number of crashes on each roadway segment
 rm(list=(ls()))
 
 library(effects);library(margins);library(dplyr);library(MASS);library(pscl);library(AER);library(leaps);library(pastecs);library(ggplot2);library(lme4); prt = TRUE
